@@ -2,46 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np 
 
 np.set_printoptions(suppress=True)
-# t = np.arange(-3, 3, 0.1)
 
-# def func1(x):
-#     return np.exp(x)
-
-# def sigmoid(x):
-#     return 1/(1 + np.exp(-x))
-
-# plt.plot(t, func1(t), label = "exp(X)")
-# plt.plot(t, sigmoid(t), label = "Sigmoid")
-# plt.xlabel("X")
-# plt.ylabel("exp(X)")
-# plt.legend()
-# plt.show()
-
-feature_1 = np.array([2, 5, 8, 4], dtype = float)
-feature_2 = np.array([5, 1, 6, 9], dtype = float)
-
-# sample
-X = np.column_stack((feature_1, feature_2))
-
-# label
-y = np.arange(0, len(feature_1))
-y_coded = np.array([[1, 0, 0, 0], 
-                    [0, 1, 0, 0], 
-                    [0, 0, 1, 0], 
-                    [0, 0, 0, 1]])
-
-#from sklearn import datasets
-#iris = datasets.load_iris()
-#X = iris.data[:, :2]
-#y = iris.target
-#y_coded = one_hot_encoder(y)
-# Plot data points
-""" for i in y:
-    plt.scatter(feature_1[y == i], feature_2[y == i], label = "Label " + str(i))
-plt.xlabel("feature 1")
-plt.ylabel("feature 2")
-plt.legend()
-plt.show() """
+from sklearn import datasets
+iris = datasets.load_iris()
+X = iris.data[:, :2]
+y = iris.target
 
 # Data standardization
 from sklearn.preprocessing import StandardScaler
@@ -50,18 +15,31 @@ stdsc = StandardScaler()
 
 X_train = stdsc.fit_transform(X)
 
+# サンプルとラベルを連結
+train_test_split = np.c_[X_train, y]
+
 # Initiate weights
 rgen = np.random.RandomState(1)
-weight = rgen.normal(scale = 1, size = (X.shape[1] + 1, len(y)))
+weight = rgen.normal(scale = 0.1, size = (X.shape[1] + 1, len(y)))
+rgen.shuffle(train_test_split)
+X_train = train_test_split[:, :X.shape[1]]
+y = train_test_split[:, X.shape[1]]
 
+def one_hot_encoder(y):
+    a = np.zeros((len(y), len(y)))
+    for idx, i in enumerate(y):
+        a[idx, int(i)] = 1
+    return a
+
+y_coded = one_hot_encoder(y)
 #X_train = np.column_stack((np.ones(len(X)), X_train))
 
 def softmax(X, weight):
     prob = []
     for j in y:
-        net_input = np.exp(X.dot(weight[1:, j]) + weight[0, j])
+        net_input = np.exp(X.dot(weight[1:, int(j)]) + weight[0, int(j)])
         prob.append(net_input)
-    prob = prob / np.exp(X.dot(weight[1:]) + weight[0, j]).sum()
+    prob = prob / np.exp(X.dot(weight[1:]) + weight[0, int(j)]).sum()
 #    print(prob)
     return prob
 
@@ -71,46 +49,47 @@ def activate(X, weight):
         prob.append(softmax(a, weight))
     return np.array(prob)
 
-def one_hot_encoder(y):
-    a = np.zeros((len(y), len(y)))
-    for idx, i in enumerate(y):
-        a[idx, i] = 1
-    return a
+
 
 epoch = 1000
-eta = 0.01
+eta = 0.001
 cost_series = []
-
+cost_lambda = 0
 for epochs in range(epoch):
     
     z = activate(X_train, weight)
     y_pred = z.argmax(axis = 1)
     y_pred_enc = one_hot_encoder(y_pred)
-    
-    cost = -np.sum(np.log(activate(X_train, weight)) * y_pred_enc)
+    regularization = (cost_lambda * (weight[1:]**2).sum()) / (2 * X_train.shape[1])
+    cost = -np.sum(np.log(activate(X_train, weight)) * y_pred_enc) + regularization
 #    print(cost)
     cost_series.append(cost) 
     
     diff = activate(X_train, weight) - y_coded
     grad = np.dot(X_train.T, diff)
     
-    weight[1:] -= eta * grad
+    weight[1:] -= eta * (grad + cost_lambda * weight[1:] / X_train.shape[1])
     weight[0] -= eta*np.sum(diff, axis = 0)
-    print(weight)
 #    weight[0] -= eta * np.sum(diff, axis = 0)
+    if len(cost_series) > 2:
+        if cost_series[-2] - cost_series[-1] < 0.001:
+            break
 
 plt.plot(range(len(cost_series)), cost_series)
 plt.show()
 
 
-t = np.arange(-2, 2, 0.1)
-feature_1 = X_train[:, 0]
-feature_2 = X_train[:, 1]
-for i in range(len(y)):
-    plt.scatter(feature_1[y == i], feature_2[y == i])
-    plt.plot(t, (weight[0, i] + t * weight[1, i]) / (-weight[2, i]))
+z = np.flip(np.unique(z, axis = 1), axis = 1)
+y_pred = z.argmax(axis = 1)
 
-plt.xlim(-2, 2)
-plt.ylim(-2, 2)
-plt.show()
+from sklearn.metrics import confusion_matrix, accuracy_score
+print("")
+print("テストデータでの性能：")
+conf_mat = confusion_matrix(y, y_pred)
+print("混同行列：")
+print(conf_mat)
+accuracy = accuracy_score(y, y_pred)
+print("精度:")
+print(accuracy)
+
         
