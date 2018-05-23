@@ -4,9 +4,9 @@ import numpy as np
 np.set_printoptions(suppress=True)
 
 from sklearn import datasets
-wine = datasets.load_wine()
-X = wine.data[:, [0, 3]]
-y = wine.target
+iris = datasets.load_iris()
+X = iris.data[:, [0, 3]]
+y = iris.target
 
 class_labels = int(y.max() + 1)
 # Data plot
@@ -35,8 +35,8 @@ X_train = stdsc.fit_transform(X)
 train_test_split = np.c_[X_train, y]
 
 # Initiate weights
-rgen = np.random.RandomState(1)
-weight = rgen.normal(scale = 1, size = (X.shape[1] + 1, len(np.unique(y))))
+rgen = np.random.RandomState(2)
+weight = rgen.normal(scale = 0.01, size = (X.shape[1] + 1, len(np.unique(y))))
 rgen.shuffle(train_test_split)
 X_train = train_test_split[:, :X.shape[1]]
 y = train_test_split[:, X.shape[1]]
@@ -57,10 +57,10 @@ def softmax(X, weight):
 
 
 
-epoch = 10000
+epoch = 1000
 eta = 0.01
 cost_series = []
-cost_lambda = 0.01
+cost_lambda = 0.1
 for epochs in range(epoch):
     z = softmax(X_train, weight)
     y_pred = z.argmax(axis = 1)
@@ -98,7 +98,7 @@ print(accuracy)
 
 from sklearn.linear_model import LogisticRegression
 
-classifier = LogisticRegression(C = 100)
+classifier = LogisticRegression(C = 1)
 classifier.fit(X_train, y)
 y_pred = classifier.predict(X_train)
 
