@@ -5,8 +5,13 @@ np.set_printoptions(suppress=True)
 
 from sklearn import datasets
 iris = datasets.load_iris()
-X = iris.data[:, :2]
+X = iris.data[:, [1, 2]]
 y = iris.target
+
+# Data plot
+for i in np.unique(y):
+    plt.scatter(X[y == i, 0], X[y == i, 1], label = "Class" + str(i))
+plt.show()
 
 # Data standardization
 from sklearn.preprocessing import StandardScaler
@@ -52,7 +57,7 @@ def activate(X, weight):
 
 
 epoch = 1000
-eta = 0.001
+eta = 0.01
 cost_series = []
 cost_lambda = 0
 for epochs in range(epoch):
