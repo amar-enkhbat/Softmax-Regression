@@ -5,7 +5,7 @@ np.set_printoptions(suppress=True)
 
 from sklearn import datasets
 iris = datasets.load_iris()
-X = iris.data[:, [0, 3]]
+X = iris.data[:, [2, 3]]
 y = iris.target
 
 class_labels = int(y.max() + 1)
@@ -83,6 +83,7 @@ for epochs in range(epoch):
 plt.plot(range(len(cost_series)), cost_series)
 plt.show()
 
+z = softmax(X_train, weight)
 y_pred = z.argmax(axis = 1)
  
 from sklearn.metrics import confusion_matrix, accuracy_score
@@ -114,11 +115,48 @@ print(accuracy)
 
 
 # Data plot
-t = np.arange(-3, 4, 0.1)
-for i in np.unique(y):
-    i = int(i)
-    plt.scatter(X_train[y == i, 0], X_train[y == i, 1], label = "Class" + str(i))
-    plt.plot(t, -(weight[0, i] + weight[1, i] * t)/weight[2, i])
-plt.xlim(-3, 3)
-plt.ylim(-2, 2)
+
+from matplotlib.colors import ListedColormap
+def plot_decision_regions(X, y, weight, resolution = 0.02):
+    markers = ('s', 'x', 'o', '^', 'v')
+    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y))])
+
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution), np.arange(x2_min, x2_max, resolution))
+
+    Z = softmax(np.array([xx1.ravel(), xx2.ravel()]).T, weight)
+    Z = Z.argmax(axis = 1)
+    Z = Z.reshape(xx1.shape)
+    plt.contourf(xx1, xx2, Z, alpha = 0.3, cmap = cmap)
+    plt.xlim(xx1.min(), xx1.max())
+    plt.ylim(xx2.min(), xx2.max())
+
+    for idx, cl in enumerate(np.unique(y)):
+        plt.scatter(x = X[y == cl, 0], y = X[y == cl, 1], alpha = 0.8, c = colors[idx], marker = markers[idx], label = cl, edgecolor = 'black')
+
+def plot_decision_regions1(X, y, classifier, resolution = 0.02):
+    markers = ('s', 'x', 'o', '^', 'v')
+    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y))])
+
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution), np.arange(x2_min, x2_max, resolution))
+
+    Z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+    Z = Z.reshape(xx1.shape)
+    plt.contourf(xx1, xx2, Z, alpha = 0.3, cmap = cmap)
+    plt.xlim(xx1.min(), xx1.max())
+    plt.ylim(xx2.min(), xx2.max())
+
+    for idx, cl in enumerate(np.unique(y)):
+        plt.scatter(x = X[y == cl, 0], y = X[y == cl, 1], alpha = 0.8, c = colors[idx], marker = markers[idx], label = cl, edgecolor = 'black')
+
+
+plot_decision_regions(X_train, y, weight)
+plt.show()
+
+plot_decision_regions1(X_train, y, classifier = classifier)
 plt.show()
