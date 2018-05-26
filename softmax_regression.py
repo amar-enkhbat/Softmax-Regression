@@ -1,46 +1,38 @@
+
+# モジュールをインポート
 import matplotlib.pyplot as plt 
 import numpy as np 
-
-np.set_printoptions(suppress=True)
-
 from sklearn import datasets
-iris = datasets.load_iris()
-X = iris.data[:, [2, 3]]
-y = iris.target
-
-class_labels = int(y.max() + 1)
-# Data plot
-#for i in np.unique(y):
-#    plt.scatter(X[y == i, 0], X[y == i, 1], label = "Class" + str(i))
-#plt.show()
-# =============================================================================
-feature_1 = np.array([2, 5, 8, 4], dtype = float)
-feature_2 = np.array([5, 1, 6, 9], dtype = float)
- 
- # sample
-X = np.column_stack((feature_1, feature_2))
- 
- # label
-y = np.arange(len(feature_1))
-class_labels = int(y.max() + 1)
-# =============================================================================
-# Data standardization
 from sklearn.preprocessing import StandardScaler
 
-stdsc = StandardScaler()
+np.set_printoptions(suppress=True)
+#　ランダムシード
+rgen = np.random.RandomState(2)
 
+# サンプルロード
+iris = datasets.load_iris()
+X = iris.data[:, 0:2]
+y = iris.target
+
+# クラスラベル数
+class_labels = int(y.max() + 1)
+
+# Data standardization
+stdsc = StandardScaler()
 X_train = stdsc.fit_transform(X)
 
 # サンプルとラベルを連結
 train_test_split = np.c_[X_train, y]
 
-# Initiate weights
-rgen = np.random.RandomState(2)
-weight = rgen.normal(scale = 0.01, size = (X.shape[1] + 1, len(np.unique(y))))
+# サンプルをシャフル
 rgen.shuffle(train_test_split)
 X_train = train_test_split[:, :X.shape[1]]
 y = train_test_split[:, X.shape[1]]
 
+# 重みを初期化
+weight = rgen.normal(scale = 0.01, size = (X.shape[1] + 1, len(np.unique(y))))
+
+# 符号化関数
 def one_hot_encoder(y):
     a = np.zeros((len(y), class_labels))
     for idx, i in enumerate(y):
@@ -99,7 +91,7 @@ print(accuracy)
 
 from sklearn.linear_model import LogisticRegression
 
-classifier = LogisticRegression(C = 1)
+classifier = LogisticRegression(C = 10)
 classifier.fit(X_train, y)
 y_pred = classifier.predict(X_train)
 

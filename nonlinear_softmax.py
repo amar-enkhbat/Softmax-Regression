@@ -5,33 +5,19 @@ Created on Wed May 23 20:19:01 2018
 @author: Amar Enkhbat
 """
 
+#
 import matplotlib.pyplot as plt 
 import numpy as np 
 
 np.set_printoptions(suppress=True)
 
 from sklearn import datasets
-wine = datasets.load_wine()
-X = wine.data[:, [2, 8]]
-y = wine.target
+iris = datasets.load_iris()
+X = iris.data[:, [1, 3]]
+y = iris.target
 
 class_labels = int(y.max() + 1)
-# Data plot
-#for i in np.unique(y):
-#    plt.scatter(X[y == i, 0], X[y == i, 1], label = "Class" + str(i))
-#plt.show()
-# =============================================================================
-#feature_1 = np.array([2, 5, 8, 4], dtype = float)
-#feature_2 = np.array([5, 1, 6, 9], dtype = float)
-# 
-# # sample
-#X = np.column_stack((feature_1, feature_2))
-# 
-# # label
-#y = np.arange(len(feature_1))
-#class_labels = int(y.max() + 1)
-# =============================================================================
-# Data standardization
+
 from sklearn.preprocessing import StandardScaler
 
 stdsc = StandardScaler()
@@ -43,7 +29,8 @@ train_test_split = np.c_[X_train, y]
 
 # Initiate weights
 rgen = np.random.RandomState(2)
-weight = rgen.normal(scale = 0.01, size = (X.shape[1] + 3, len(np.unique(y))))
+# weight = rgen.normal(scale = 0.01, size = (X.shape[1] + 3, len(np.unique(y))))
+weight = np.zeros((X.shape[1] + 3, len(np.unique(y))))
 rgen.shuffle(train_test_split)
 X_train = train_test_split[:, :X.shape[1]]
 y = train_test_split[:, X.shape[1]]
@@ -66,7 +53,7 @@ def softmax(X, weight):
 
 
 
-epoch = 1000
+epoch = 10000
 eta = 0.01
 cost_series = []
 cost_lambda = 0.1
@@ -75,7 +62,7 @@ for epochs in range(epoch):
     y_pred = z.argmax(axis = 1)
     y_pred_enc = one_hot_encoder(y_pred)
     regularization = (cost_lambda * (weight[1:]**2).sum()) / (2 * X_train.shape[1])
-    cost = -np.sum(np.log(z) * y_pred_enc) + regularization
+    cost = (-1)*np.sum(np.log(z) * y_pred_enc) + regularization
 #    print(cost)
     cost_series.append(cost) 
 
@@ -85,9 +72,9 @@ for epochs in range(epoch):
     weight[1:] -= eta * (grad + cost_lambda * weight[1:] / X_train.shape[1])
     weight[0] -= eta*np.sum(diff, axis = 0)
 
-#    if len(cost_series) > 2:
-#        if cost_series[-1] - cost_series[-2] < 0.00001:
-#            break
+    if len(cost_series) > 2:
+        if cost_series[-2] - cost_series[-1] < 0.001:
+            break
     
 plt.plot(range(len(cost_series)), cost_series)
 plt.show()
