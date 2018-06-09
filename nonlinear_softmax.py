@@ -13,7 +13,7 @@ np.set_printoptions(suppress=True)
 
 from sklearn import datasets
 iris = datasets.load_iris()
-X = iris.data[:, [1, 3]]
+X = iris.data[:, [0, 3]]
 y = iris.target
 
 class_labels = int(y.max() + 1)
@@ -53,10 +53,10 @@ def softmax(X, weight):
 
 
 
-epoch = 10000
+epoch = 1000
 eta = 0.01
 cost_series = []
-cost_lambda = 0.1
+cost_lambda = 10
 for epochs in range(epoch):
     z = softmax(X_train, weight)
     y_pred = z.argmax(axis = 1)
@@ -72,9 +72,9 @@ for epochs in range(epoch):
     weight[1:] -= eta * (grad + cost_lambda * weight[1:] / X_train.shape[1])
     weight[0] -= eta*np.sum(diff, axis = 0)
 
-    if len(cost_series) > 2:
-        if cost_series[-2] - cost_series[-1] < 0.001:
-            break
+    # if len(cost_series) > 2:
+    #     if cost_series[-2] - cost_series[-1] < 0.001:
+    #         break
     
 plt.plot(range(len(cost_series)), cost_series)
 plt.show()
@@ -111,7 +111,6 @@ print(accuracy)
 
 
 # Data plot
-
 from matplotlib.colors import ListedColormap
 def plot_decision_regions(X, y, weight, resolution = 0.01):
     markers = ('s', 'x', 'o', '^', 'v')
