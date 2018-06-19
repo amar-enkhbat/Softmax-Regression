@@ -29,11 +29,37 @@ X = wine.data[:, [0, 3]]
 y = wine.target
 number_of_classes = len(np.unique(y))
 
+def load_mnist(path, kind='train'):
+    """Load MNIST data from `path`"""
+    labels_path = os.path.join(path, 
+                               '%s-labels.idx1-ubyte' % kind)
+    images_path = os.path.join(path, 
+                               '%s-images.idx3-ubyte' % kind)
+        
+    with open(labels_path, 'rb') as lbpath:
+        magic, n = struct.unpack('>II', 
+                                 lbpath.read(8))
+        labels = np.fromfile(lbpath, 
+                             dtype=np.uint8)
+
+    with open(images_path, 'rb') as imgpath:
+        magic, num, rows, cols = struct.unpack(">IIII", 
+                                               imgpath.read(16))
+        images = np.fromfile(imgpath, 
+                             dtype=np.uint8).reshape(len(labels), 784)
+        images = ((images / 255.) - .5) * 2
+ 
+    return images, labels
+
+X_train, y_train = load_mnist('./mnist/', kind = 't10k')
+X_test, y_test = load_mnist('./mnist/', kind = 't10k')
 # =============================================================================
 # Separate samples
 # =============================================================================
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = random_seed)
-X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, random_state = random_seed)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = random_seed)
+# X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.2, random_state = random_seed)
+
+
 
 # =============================================================================
 # Data standardization
@@ -255,66 +281,70 @@ def plot_decision_regions_poly(X, y, weight, resolution = 0.02):
 # Polynomial models
 # =============================================================================
 
-# for i in range(1, 10):
+for i in range(1, 10):
     
-#     poly = PolynomialFeatures(i, include_bias = False)
-#     X_train_std_poly = poly.fit_transform(X_train_std)
-#     X_valid_std_poly = poly.transform(X_train_std)
-# #    weight = np.random.normal(scale = 0.01, size = (X_train_std_poly.shape[1] + 1, len(np.unique(y))))
+    poly = PolynomialFeatures(i, include_bias = False)
+    X_train_std_poly = poly.fit_transform(X_train_std)
+    X_valid_std_poly = poly.transform(X_train_std)
+#    weight = np.random.normal(scale = 0.01, size = (X_train_std_poly.shape[1] + 1, len(np.unique(y))))
     
-#     learned_weights_train, cost_array_train = train(X_train_std_poly, y_train, epochs, learning_rate, cost_lambda)
+    learned_weights_train, cost_array_train = train(X_train_std_poly, y_train, epochs, learning_rate, cost_lambda)
     
     
-#     y_pred = full_predict(X_train_std_poly, learned_weights_train)
-#     print("")
-#     print("テストデータでの性能：")
-#     conf_mat = confusion_matrix(y_train, y_pred)
-#     print("混同行列：")
-#     print(conf_mat)
-#     accuracy = accuracy_score(y_train, y_pred)
-#     print("精度:")
-#     print(accuracy)
-#     plot_decision_regions_poly(X_train_std_poly, y_train, learned_weights_train)
-#     plt.show()
+    y_pred = full_predict(X_train_std_poly, learned_weights_train)
+    print("")
+    print("テストデータでの性能：")
+    conf_mat = confusion_matrix(y_train, y_pred)
+    print("混同行列：")
+    print(conf_mat)
+    accuracy = accuracy_score(y_train, y_pred)
+    print("精度:")
+    print(accuracy)
+    plot_decision_regions_poly(X_train_std_poly, y_train, learned_weights_train)
+    plt.show()
         
 # =============================================================================
 # Learning curve plot
 # =============================================================================
-m = X_train_std.shape[0]
-error_train = np.zeros(m-1)
-error_val = np.zeros(m-1)
+# m = X_train_std.shape[0]
+# error_train = np.zeros(m-1)
+# error_val = np.zeros(m-1)
 
-for i in range(1, m):
-    learned_weights, a = train(X_train_std[0:i, :], y_train[0:i], epochs, learning_rate, cost_lambda)
-    error_train[i-1] = compute_error(X_train_std[0:i, :], y_train[0:i], learned_weights, 0)
-    error_val[i-1]= compute_error(X_valid_std, y_valid, learned_weights, 0)
+# for i in range(1, m):
+#     learned_weights, a = train(X_train_std[0:i, :], y_train[0:i], epochs, learning_rate, cost_lambda)
+#     error_train[i-1] = compute_error(X_train_std[0:i, :], y_train[0:i], learned_weights, 0)
+#     error_val[i-1]= compute_error(X_valid_std, y_valid, learned_weights, 0)
 
-plt.plot(range(m-1), error_train, label = "Training data")
-plt.plot(range(m-1), error_val, label = "Validation data")
-plt.title("Learning Curve")
-plt.xlabel("Number of data")
-plt.ylabel("Cost")
-plt.legend()
-plt.show()
+# plt.plot(range(m-1), error_train, label = "Training data")
+# plt.plot(range(m-1), error_val, label = "Validation data")
+# plt.title("Learning Curve")
+# plt.xlabel("Number of data")
+# plt.ylabel("Cost")
+# plt.legend()
+# plt.show()
 
 
 # =============================================================================
 # Validation plot
 # =============================================================================
-lambda_vec = [0, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30, 100, 300, 3000]
+# lambda_vec = [0, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30, 100, 300, 3000]
 
-error_train = []
-error_val = []
+# error_train = []
+# error_val = []
 
-for i in lambda_vec:
-    learned_weights, a = train(X_train_std, y_train, epochs, learning_rate, i)
-    error_train.append(compute_error(X_train_std, y_train, learned_weights, 0))
-    error_val.append(compute_error(X_valid_std, y_valid, learned_weights, 0))
+# for i in lambda_vec:
+#     learned_weights, a = train(X_train_std, y_train, epochs, learning_rate, i)
+#     error_train.append(compute_error(X_train_std, y_train, learned_weights, 0))
+#     error_val.append(compute_error(X_valid_std, y_valid, learned_weights, 0))
     
-plt.plot(range(len(lambda_vec)), error_train, label = "Training data")
-plt.plot(range(len(lambda_vec)), error_val, label = "Validation data")
-plt.title("Learning Curve")
-plt.xlabel("Lambda")
-plt.ylabel("Cost")
-plt.legend()
-plt.show()
+# plt.plot(range(len(lambda_vec)), error_train, label = "Training data")
+# plt.plot(range(len(lambda_vec)), error_val, label = "Validation data")
+# plt.title("Learning Curve")
+# plt.xlabel("Lambda")
+# plt.ylabel("Cost")
+# plt.legend()
+# plt.show()
+
+print(learned_weights_train.shape)
+# for i in range(10):
+#     plt.imshow(learned_weights_train[i].reshape(28, 28))
